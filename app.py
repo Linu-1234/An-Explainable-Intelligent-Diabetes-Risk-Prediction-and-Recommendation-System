@@ -1,9 +1,12 @@
 import streamlit as st
-import pickle
 import numpy as np
 
 # Load model
-model = pickle.load(open("diabetes_model.pkl", "rb"))
+from xgboost import XGBClassifier
+
+model = XGBClassifier()
+
+model.load_model("diabetes_model.json")
 
 # Page title
 st.set_page_config(page_title="An-Explainable-Intelligent-Diabetes-Risk-Prediction-and-Recommendation-System")
