@@ -1,78 +1,132 @@
 import streamlit as st
+import pandas as pd
 import numpy as np
-
-# Load model
 from xgboost import XGBClassifier
 
+# -----------------------------
+# Load Trained Model
+# -----------------------------
 model = XGBClassifier()
-
 model.load_model("diabetes_model.json")
 
-# Page title
-st.set_page_config(page_title="An-Explainable-Intelligent-Diabetes-Risk-Prediction-and-Recommendation-System")
+# -----------------------------
+# Page Configuration
+# -----------------------------
+st.set_page_config(
+    page_title="Diabetes Prediction System",
+    layout="centered"
+)
 
-st.title("An-Explainable-Intelligent-Diabetes-Risk-Prediction-and-Recommendation-System")
+# -----------------------------
+# Title
+# -----------------------------
+st.title("Diabetes Prediction System")
+
+st.subheader(
+    "An Explainable Intelligent Diabetes Risk Prediction and Recommendation System"
+)
 
 st.write("Enter the health parameters below:")
 
+# -----------------------------
 # User Inputs
-gender = st.selectbox("Gender", ["Male", "Female"])
+# -----------------------------
 
-age = st.number_input("Age", 1, 100)
+gender = st.selectbox(
+    "Gender",
+    ["Male", "Female"]
+)
 
-hypertension = st.selectbox("Hypertension", [0,1])
+age = st.number_input(
+    "Age",
+    min_value=1,
+    max_value=100,
+    value=25
+)
 
-heart_disease = st.selectbox("Heart Disease", [0,1])
+hypertension = st.selectbox(
+    "Hypertension",
+    [0, 1]
+)
+
+heart_disease = st.selectbox(
+    "Heart Disease",
+    [0, 1]
+)
 
 smoking_history = st.selectbox(
     "Smoking History",
     ["never", "former", "current", "not current"]
 )
 
-bmi = st.number_input("BMI", 10.0, 60.0)
+bmi = st.number_input(
+    "BMI",
+    min_value=10.0,
+    max_value=60.0,
+    value=22.0
+)
 
-HbA1c_level = st.number_input("HbA1c Level", 3.0, 15.0)
+HbA1c_level = st.number_input(
+    "HbA1c Level",
+    min_value=3.0,
+    max_value=15.0,
+    value=5.0
+)
 
 blood_glucose_level = st.number_input(
     "Blood Glucose Level",
-    50,
-    300
+    min_value=50,
+    max_value=300,
+    value=100
 )
 
-# Encoding
-gender_Male = 1 if gender == "Male" else 0
+# -----------------------------
+# Prediction
+# -----------------------------
 
-smoking_history_former = 1 if smoking_history == "former" else 0
-smoking_history_never = 1 if smoking_history == "never" else 0
-smoking_history_not_current = 1 if smoking_history == "not current" else 0
-
-# Prediction button
 if st.button("Predict"):
 
-    input_data = np.array([[
-        age,
-        hypertension,
-        heart_disease,
-        bmi,
-        HbA1c_level,
-        blood_glucose_level,
-        gender_Male,
-        smoking_history_former,
-        smoking_history_never,
-        smoking_history_not_current
-    ]])
+    # Create input dataframe
+    input_dict = {
 
+        'age': age,
+        'hypertension': hypertension,
+        'heart_disease': heart_disease,
+        'bmi': bmi,
+        'HbA1c_level': HbA1c_level,
+        'blood_glucose_level': blood_glucose_level,
+
+        # Gender Encoding
+        'gender_Male': 1 if gender == "Male" else 0,
+
+        # Smoking Encoding
+        'smoking_history_former': 1 if smoking_history == "former" else 0,
+        'smoking_history_never': 1 if smoking_history == "never" else 0,
+        'smoking_history_not current': 1 if smoking_history == "not current" else 0
+    }
+
+    input_data = pd.DataFrame([input_dict])
+
+    # Prediction
     prediction = model.predict(input_data)[0]
 
     probability = model.predict_proba(input_data)[0][1]
 
+    # -----------------------------
     # Prediction Result
+    # -----------------------------
+
+    st.subheader("Prediction Result")
+
     if prediction == 1:
         st.error("High Probability of Diabetes")
     else:
         st.success("Low Probability of Diabetes")
 
+    # -----------------------------
     # Risk Level
+    # -----------------------------
+
     if probability < 0.3:
         risk = "Low Risk"
 
@@ -84,9 +138,14 @@ if st.button("Predict"):
 
     st.subheader(f"Risk Level: {risk}")
 
-    st.write(f"Prediction Probability: {probability:.2f}")
+    st.write(
+        f"Prediction Probability: {probability * 100:.2f}%"
+    )
 
+    # -----------------------------
     # Recommendations
+    # -----------------------------
+
     st.subheader("Personalized Recommendations")
 
     recommendations = []
